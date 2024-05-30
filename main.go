@@ -33,7 +33,8 @@ func main() {
 	mux.HandleFunc("GET /v1/readiness", readiness)
 	mux.HandleFunc("GET /v1/err", errorResponse)
 
-	mux.HandleFunc("POST /v1/users", cfg.createUser)
+	mux.HandleFunc("POST /v1/users", cfg.handlerCreateUser)
+	mux.HandleFunc("GET /v1/users", cfg.handlerGetUser)
 
 	srv := &http.Server{
 		Addr:    ":" + port,
