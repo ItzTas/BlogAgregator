@@ -23,6 +23,10 @@ func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, 
 		Name string `json:"name"`
 		URL  string `json:"url"`
 	}
+	type returnVals struct {
+		Feed       Feed
+		FeedFollow FeedFollow
+	}
 	decoder := json.NewDecoder(r.Body)
 	params := paramethers{}
 	err := decoder.Decode(&params)
@@ -43,15 +47,18 @@ func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, 
 
 	f, err := cfg.DB.CreateFeed(r.Context(), feedParams)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not create feed")
+		respondWithError(w, http.StatusBadRequest, "Feed already exists")
 		return
 	}
-	respondWithJSON(w, http.StatusCreated, Feed{
-		ID:        f.ID,
-		CreatedAt: f.CreatedAt,
-		UpdatedAt: f.UpdatedAt,
-		Name:      f.Name,
-		Url:       f.Url,
-		UserID:    f.UserID,
+
+	fd, err := cfg.newfeedFollow(f.ID, user)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, returnVals{
+		Feed:       Feed(feedParams),
+		FeedFollow: fd,
 	})
 }
