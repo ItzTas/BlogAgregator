@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -38,7 +37,7 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 		Name:      params.Name,
 	}
 
-	u, err := cfg.DB.CreateUser(context.TODO(), user)
+	u, err := cfg.DB.CreateUser(r.Context(), user)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not create user")
 		return
