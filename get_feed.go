@@ -8,9 +8,10 @@ func (cfg *apiConfig) handlerRetrieveFeeds(w http.ResponseWriter, r *http.Reques
 		respondWithError(w, http.StatusInternalServerError, "Could not get the feeds")
 		return
 	}
-	feeds := []Feed{}
-	for _, feed := range dbfeeds {
-		feeds = append(feeds, Feed(feed))
+
+	feeds := make([]Feed, len(dbfeeds))
+	for i, feed := range dbfeeds {
+		feeds[i] = Feed(feed)
 	}
 	respondWithJSON(w, http.StatusOK, feeds)
 }
