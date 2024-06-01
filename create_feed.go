@@ -10,12 +10,33 @@ import (
 )
 
 type Feed struct {
-	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Name      string    `json:"name"`
-	Url       string    `json:"url"`
-	UserID    uuid.UUID `json:"user_id"`
+	ID            uuid.UUID  `json:"id"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+	Name          string     `json:"name"`
+	Url           string     `json:"url"`
+	UserID        uuid.UUID  `json:"user_id"`
+	LastFetchedAt *time.Time `json:"last_fetched_at"`
+}
+
+func databaseFeedToFeed(feed database.Feed) Feed {
+	var lastFetchedAt *time.Time
+	if feed.LastFetchedAt.Valid {
+		lastFetchedAt = &feed.LastFetchedAt.Time
+	} else {
+		lastFetchedAt = nil
+	}
+
+	newFeed := Feed{
+		ID:            feed.ID,
+		CreatedAt:     feed.CreatedAt,
+		UpdatedAt:     feed.UpdatedAt,
+		Name:          feed.Name,
+		Url:           feed.Url,
+		UserID:        feed.UserID,
+		LastFetchedAt: lastFetchedAt,
+	}
+	return newFeed
 }
 
 func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
@@ -24,8 +45,8 @@ func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, 
 		URL  string `json:"url"`
 	}
 	type returnVals struct {
-		Feed       Feed
-		FeedFollow FeedFollow
+		Feed       Feed       `json:"feed"`
+		FeedFollow FeedFollow `json:"feed_follow"`
 	}
 	decoder := json.NewDecoder(r.Body)
 	params := paramethers{}
@@ -45,20 +66,20 @@ func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, 
 		UserID:    user.ID,
 	}
 
-	f, err := cfg.DB.CreateFeed(r.Context(), feedParams)
+	newFeed, err := cfg.DB.CreateFeed(r.Context(), feedParams)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Feed already exists")
 		return
 	}
 
-	fd, err := cfg.newfeedFollow(f.ID, user)
+	ff, err := cfg.newfeedFollow(newFeed.ID, user)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	respondWithJSON(w, http.StatusCreated, returnVals{
-		Feed:       Feed(feedParams),
-		FeedFollow: fd,
+		Feed:       databaseFeedToFeed(newFeed),
+		FeedFollow: ff,
 	})
 }

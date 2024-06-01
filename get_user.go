@@ -10,13 +10,7 @@ import (
 )
 
 func (cfg *apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request, user database.User) {
-	respondWithJSON(w, http.StatusOK, User{
-		ID:        user.ID,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-		Name:      user.Name,
-		ApiKey:    user.ApiKey,
-	})
+	respondWithJSON(w, http.StatusOK, databaseUserToUser(user))
 }
 
 func (cfg *apiConfig) getUserFromRequest(r *http.Request) (database.User, error) {
@@ -29,4 +23,8 @@ func (cfg *apiConfig) getUserFromRequest(r *http.Request) (database.User, error)
 		return database.User{}, errors.New("could not find the user")
 	}
 	return user, nil
+}
+
+func databaseUserToUser(user database.User) User {
+	return User(user)
 }
