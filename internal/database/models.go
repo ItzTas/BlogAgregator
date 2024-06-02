@@ -38,6 +38,7 @@ type Post struct {
 	Description string
 	PublishedAt time.Time
 	FeedID      uuid.UUID
+	ImageUrl    sql.NullString
 }
 
 type User struct {

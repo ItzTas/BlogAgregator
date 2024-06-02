@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+
+	"github.com/ItsTas/BlogAgregator/internal/client"
 )
 
 func ParseAPIKey(headers http.Header) (string, error) {
@@ -16,4 +18,26 @@ func ParseAPIKey(headers http.Header) (string, error) {
 		return "", errors.New("invalid header formating")
 	}
 	return splitedHeader[1], nil
+}
+
+func ExtractImageUrl(item client.Item) string {
+	for _, media := range item.Media {
+		if media.Type == "image/jpeg" || media.Type == "image/png" {
+			return media.URL
+		}
+	}
+
+	for _, thumb := range item.Thumbnail {
+		if thumb.Type == "image/jpeg" || thumb.Type == "image/png" {
+			return thumb.URL
+		}
+	}
+
+	for _, enclosure := range item.Enclosure {
+		if enclosure.Type == "image/jpeg" || enclosure.Type == "image/png" {
+			return enclosure.URL
+		}
+	}
+
+	return ""
 }

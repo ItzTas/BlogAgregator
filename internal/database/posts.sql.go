@@ -7,15 +7,16 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 const createPost = `-- name: CreatePost :one
-INSERT INTO posts (id, created_at, updated_at, title, url, description, published_at, feed_id)
-VALUES ($1, $2, $3, $4 , $5, $6, $7, $8)
-RETURNING id, created_at, updated_at, title, url, description, published_at, feed_id
+INSERT INTO posts (id, created_at, updated_at, title, url, description, published_at, feed_id, image_url)
+VALUES ($1, $2, $3, $4 , $5, $6, $7, $8, $9)
+RETURNING id, created_at, updated_at, title, url, description, published_at, feed_id, image_url
 `
 
 type CreatePostParams struct {
@@ -27,6 +28,7 @@ type CreatePostParams struct {
 	Description string
 	PublishedAt time.Time
 	FeedID      uuid.UUID
+	ImageUrl    sql.NullString
 }
 
 func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, error) {
@@ -39,6 +41,7 @@ func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, e
 		arg.Description,
 		arg.PublishedAt,
 		arg.FeedID,
+		arg.ImageUrl,
 	)
 	var i Post
 	err := row.Scan(
@@ -50,6 +53,55 @@ func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, e
 		&i.Description,
 		&i.PublishedAt,
 		&i.FeedID,
+		&i.ImageUrl,
 	)
 	return i, err
+}
+
+const getPostsByUser = `-- name: GetPostsByUser :many
+SELECT id, created_at, updated_at, title, url, description, published_at, feed_id, image_url FROM posts
+WHERE feed_id IN (
+    SELECT feed_id FROM feed_follow
+    WHERE user_id = $1
+)
+ORDER BY published_at DESC
+LIMIT $2
+`
+
+type GetPostsByUserParams struct {
+	UserID uuid.UUID
+	Limit  int32
+}
+
+func (q *Queries) GetPostsByUser(ctx context.Context, arg GetPostsByUserParams) ([]Post, error) {
+	rows, err := q.db.QueryContext(ctx, getPostsByUser, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Post
+	for rows.Next() {
+		var i Post
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Title,
+			&i.Url,
+			&i.Description,
+			&i.PublishedAt,
+			&i.FeedID,
+			&i.ImageUrl,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

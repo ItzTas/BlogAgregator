@@ -15,6 +15,15 @@ type Channel struct {
 	LastBuildDate string   `xml:"lastBuildDate"`
 	AtomLink      AtomLink `xml:"atom:link"`
 	Items         []Item   `xml:"item"`
+	Images        []Image  `xml:"image"`
+}
+
+type Image struct {
+	Url    string `xml:"url"`
+	Title  string `xml:"title"`
+	Link   string `xml:"link"`
+	Width  string `xml:"width"`
+	Height string `xml:"height"`
 }
 
 type AtomLink struct {
@@ -24,9 +33,22 @@ type AtomLink struct {
 }
 
 type Item struct {
-	Title       string `xml:"title"`
-	Link        string `xml:"link"`
-	PubDate     string `xml:"pubDate"`
-	Guid        string `xml:"guid"`
-	Description string `xml:"description"`
+	Title       string      `xml:"title"`
+	Link        string      `xml:"link"`
+	PubDate     string      `xml:"pubDate"`
+	Guid        string      `xml:"guid"`
+	Description string      `xml:"description"`
+	Media       []Media     `xml:"media:content"`
+	Thumbnail   []Media     `xml:"media:thumbnail"`
+	Enclosure   []Enclosure `xml:"enclosure"`
+}
+
+type Media struct {
+	URL  string `xml:"url,attr"`
+	Type string `xml:"type,attr"`
+}
+
+type Enclosure struct {
+	URL  string `xml:"url,attr"`
+	Type string `xml:"type,attr"`
 }
