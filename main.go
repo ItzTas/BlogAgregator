@@ -6,7 +6,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/ItsTas/BlogAgregator/internal/client"
 	"github.com/ItsTas/BlogAgregator/internal/database"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -25,7 +27,8 @@ func main() {
 	dbQueries := database.New(db)
 
 	cfg := &apiConfig{
-		DB: dbQueries,
+		DB:     dbQueries,
+		Client: client.NewClient(5*time.Minute, 5*time.Minute),
 	}
 
 	mux := http.NewServeMux()

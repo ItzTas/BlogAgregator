@@ -39,6 +39,14 @@ func databaseFeedToFeed(feed database.Feed) Feed {
 	return newFeed
 }
 
+func databaseFeedsToFeeds(feeds []database.Feed) []Feed {
+	newFs := make([]Feed, len(feeds))
+	for _, feed := range feeds {
+		newFs = append(newFs, databaseFeedToFeed(feed))
+	}
+	return newFs
+}
+
 func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	type paramethers struct {
 		Name string `json:"name"`

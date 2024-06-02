@@ -9,9 +9,6 @@ func (cfg *apiConfig) handlerRetrieveFeeds(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	feeds := make([]Feed, len(dbfeeds))
-	for i, feed := range dbfeeds {
-		feeds[i] = databaseFeedToFeed(feed)
-	}
+	feeds := databaseFeedsToFeeds(dbfeeds)
 	respondWithJSON(w, http.StatusOK, feeds)
 }
