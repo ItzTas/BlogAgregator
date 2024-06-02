@@ -53,7 +53,7 @@ func main() {
 
 	fmt.Printf("Listening on port: %s\n", port)
 
-	go cfg.fetcherWorker(15*time.Second, 10)
+	go cfg.fetcherWorker(120*time.Second, 10)
 
 	log.Fatal(srv.ListenAndServe())
 }
